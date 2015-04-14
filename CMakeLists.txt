@@ -219,8 +219,39 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 			)
 			set_tests_properties("tests_transformations_working_${test}" PROPERTIES ENVIRONMENT "top_builddir=${CMAKE_CURRENT_BINARY_DIR}")
 		endforeach()
-
+		
 	endif()
+
+    # Add the compilation of the test program written in C.
+    file(
+        GLOB
+        test_programs
+        tests/*.c
+    )
+    message(STATUS "---")
+    foreach(test_source ${test_programs})
+    
+        string(REPLACE ".c" "" test_name ${test_source})
+        string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/tests/" "test__" test_name ${test_name})
+        
+        message(STATUS "Add C executable tests/${test_name}")
+        add_executable(${test_name} "${test_source}")
+        target_link_libraries(${test_name} candl)
+
+    endforeach()
+
+    #Test if candl_dependence_is_loop_carried and candl_dependence_is_loop_independent work
+    file(
+        GLOB_RECURSE
+        tests_dependence_nature
+        tests/dependence_nature/*.c
+    )
+    message(STATUS "---")
+    foreach (test_source ${tests_dependence_nature})
+        string(REPLACE ".c" "" test_name ${test_source})
+        message(STATUS "Add dependence nature test - ${test_name}")
+        add_test("dependence_nature__${test_name}" "test__dependence_nature" "${test_source}.scop" "${test_source}.results")
+    endforeach()
 
 
 # Install
